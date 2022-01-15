@@ -7,23 +7,22 @@
       :events="events"
       editable-events
       :on-event-create="onEventCreate"
-      class="vuecal--green-theme"
+      :on-event-click="onEventClick"
       today-button
       :snap-to-time="15"
       :drag-to-create-event="false"
-      
+      class=" vuecal--green-theme"
     >
       <template v-slot:today-button>
         <v-tooltip>
           <template v-slot:activator="{ on }">
-            <v-btn v-on="on">
-              <p>today</p>
+            <v-btn  class = "today-btn" depressed v-on="on">
+              today
             </v-btn>
           </template>
         </v-tooltip>
       </template>
     </vue-cal>
-
     <v-dialog
       v-model="showEventCreationDialog"
       :persistent="true"
@@ -48,6 +47,31 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-dialog  v-model="editEventShow" >
+        
+        <template v-slot:default="dialog" >
+          <v-card>
+            <v-toolbar
+              style="background-color:#42b983;color:white"
+            ><h1>{{selectedEvent.title}}</h1></v-toolbar>
+            <v-card-text>
+              <p class="text-h2 pa-12">{{selectedEvent.content}}</p>
+            </v-card-text>
+            <div class="buttons-dialog">
+              <v-btn
+                style="background-color:#1976D2;color:white"
+                text
+                @click="dialog.value = false"
+              >Save</v-btn>
+              <v-btn
+                style="background-color:#F44336;color:white"
+                text
+                @click="deleteEvent()"
+              >Delete Event</v-btn>
+            </div>
+          </v-card>
+        </template>
+    </v-dialog>
     <v-alert
       class="alert"
       :type="alert.type"
@@ -66,7 +90,6 @@ import VueCal from "vue-cal";
 import "vue-cal/dist/vuecal.css";
 import api from "../configs";
 
-
 export default {
   name: "myCalendar",
   components: {
@@ -74,41 +97,13 @@ export default {
   },
   data() {
     return {
+      editEventShow:true,
       selectedEvent: {},
       showEventCreationDialog: false,
       loadReady: false,
       c: new api(),
       days: [],
-      events: [
-        {
-          start: '2022-01-12 10:00:00',
-          end: '2022-01-12 10:30:00',
-          title: '1',
-          content: '1',
-          class: 'primary'
-        },
-        {
-          start: '2022-01-12 10:00:00',
-          end: '2022-01-12 10:45:00',
-          title: '2',
-          content: '2',
-          class: 'info'
-        },
-        {
-          start: '2022-01-12 10:00:00',
-          end: '2022-01-12 11:00:00',
-          title: '3',
-          content: '3',
-          class: 'warning'
-        },
-        {
-          start: '2022-01-12 09:59:59',
-          end: '2022-01-12 11:00:01',
-          title: '4',
-          content: '4',
-          class: 'danger'
-        }
-      ],
+      events: [],
       eventsCssClasses: ["leisure", "sport", "health"],
       selectedDate: new Date(new Date().getFullYear(), 11, 31),
       alert: {
@@ -120,11 +115,38 @@ export default {
   },
   computed: {},
   methods: {
+    onEventClick(event , e){
+      this.selectedEvent = event;
+      this.editEventShow = true;
+
+      e.stopPropagation();
+    },
+
+    deleteEvent(){
+      this.axios.delete(`${this.c.deleteEvent}${this.selectedEvent._id}` , {headers: this.c.headers}).then(res=>{
+          console.log(res);
+          if(res.data.success){
+             this.showAlert({ message: res.data.message, type: "success" });
+          }else{
+            this.showAlert({ message: res.data.message, type: "error" });
+          }
+          this.editEventShow = false;
+        }).catch(error=>{
+          this.showAlert({ message: error, type: "error" });
+          this.editEventShow = false;
+        });
+        this.events = this.events.filter((val)=>{
+          return val._id != this.selectedEvent._id;
+        });
+        this.selectedEvent = {};
+        this.deleteEventFunction();
+    },
+
     onEventCreate(event, deleteEventFunction) {
       this.selectedEvent = event;
       this.showEventCreationDialog = true;
       this.deleteEventFunction = deleteEventFunction;
-      console.log(event);
+      console.log(this.deleteEventFunction);
       return event;
     },
 
@@ -165,14 +187,21 @@ export default {
       this.selectedEvent = {};
     },
 
-    convertEvent(event){
+    convertEvent(event) {
       var returnedEvent = {
-        class : 'primary',
-        start : event.created_at.split('T')[0] + ' ' + event.created_at.split('T')[1].split('.')[0],
-        end : event.created_at.split('T')[0] + ' ' + event.created_at.split('T')[1].split('.')[0],
+        _id : event._id,
+        class: "primary",
+        start:
+          event.event_date.split("T")[0] +
+          " " +
+          event.event_date.split("T")[1].split(".")[0],
+        end:
+          event.event_date.split("T")[0] +
+          " " +
+          event.event_date.split("T")[1].split(".")[0],
         title: event.event_name,
         content: event.event_description,
-      }
+      };
       return returnedEvent;
     },
 
@@ -193,9 +222,9 @@ export default {
         console.log(res);
         if (res.data.success) {
           console.log(res.data);
-          for (var i of res.data.return.docs){
+          for (var i of res.data.return.docs) {
             this.events.push(this.convertEvent(i));
-            console.log(this.events);
+            // console.log(this.events);
           }
           // this.events = res.data.return.docs;
         }
@@ -203,7 +232,7 @@ export default {
   },
 };
 </script>
-<style scoped>
+<style>
 .alert {
   position: fixed;
   bottom: 0;
@@ -222,5 +251,52 @@ export default {
 .success-alert {
   background-color: #42b983 !important ;
   color: white !important;
+}
+
+
+:root{
+  --primary:#1976D2;
+  --secondary: #4242421a;
+  --accent: #82B1FF;
+  --info: #2196F3;
+}
+
+.vuecal__event{
+  margin-top:15px;
+  border:3px solid#42b983 ;
+  border-radius: 8px;
+  background-color: #c6ffe5;
+}
+
+.today-btn{
+  background-color:#42b983 !important;
+  color: white !important;
+}
+
+.vuecal__event-title{
+  /* border :10px solid white;
+  border: 10px; */
+  padding: 10px;
+  text-align: left;
+  letter-spacing: 2px;
+  font-weight: bold;
+  /* color: aliceblue; */
+}
+
+.vuecal__event-content{
+  border-top: 1px solid var(--secondary);
+  padding: 10px;
+  text-align: left;
+}
+
+.buttons-dialog{
+  display: flex;
+  justify-content: space-between;
+  /* width: fit-content; */
+  padding: 2%;
+}
+.pa-12{
+  font-size: 120%;
+  padding: 15px;
 }
 </style>
