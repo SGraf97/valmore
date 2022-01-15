@@ -2,7 +2,7 @@
 
 
  <div>
-   <myCalendar />
+   <myCalendar data-app  />
 
  </div>
 </template>
