@@ -1,19 +1,40 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+
+
+ <div>
+   <myCalendar />
+
+ </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+// import Calendar from 'v-calendar/lib/components/calendar.umd'
+// import DatePicker from 'v-calendar/lib/components/date-picker.umd'
+import myCalendar from './components/myCalendar.vue';
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    myCalendar
+  },
+  data: function (){
+    return{
+      days: []
+    }
+  },
+  computed: {
+    dates() {
+      return this.days.map(day => day.date);
+    },
+    attributes(){
+      return this.dates.map(date => ({
+        highlight: true,
+        dates: date,
+      }));
+    }
   }
 }
+
 </script>
 
 <style>
@@ -26,3 +47,4 @@ export default {
   margin-top: 60px;
 }
 </style>
+

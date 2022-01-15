@@ -1,0 +1,7 @@
+/* eslint-disable */
+// module.exports = {
+//   transpileDependencies: [
+//     'vuetify'
+//   ],
+//   lintOnSave:false
+// }
