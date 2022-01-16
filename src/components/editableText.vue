@@ -1,6 +1,6 @@
 <template>
 <div @click="handleClick">
-        <div ref="me" contenteditable @input.stop="handleInput" @blur="handleDone" @keydown.enter="handleDone" @keypress.stop="handleKeyPress"  v-text="content" v-show="editing"></div>
+        <div ref="me" contenteditable  @blur="handleDone" @keydown.enter="handleDone" @keypress.stop="handleKeyPress"  v-text="content" v-show="editing"></div>
         <span v-html="content" class="editable" v-if="!editing"></span>
     </div>
 </template>
@@ -38,7 +38,7 @@ export default {
       }, 10);
     },
     handleDone(e) {
-      this.$emit("inputP", e.target.innerText);
+      this.$emit("EditingVal", e.target.innerText);
       this.editing = false;
     },
   },
