@@ -1,12 +1,16 @@
 <template>
 <div @click="handleClick">
         <div ref="me" contenteditable  @blur="handleDone" @keydown.enter="handleDone" @keypress.stop="handleKeyPress"  v-text="content" v-show="editing"></div>
-        <span v-html="content" class="editable" v-if="!editing"></span>
+        <span v-text="content" class="editable" v-if="!editing">{tag} {content} </span>
     </div>
 </template>
 <script>
 export default {
   props: {
+      tag:{
+          type:String,
+          default:'h1'
+      },
       content: {
           type: String,
           default:""

@@ -10,6 +10,7 @@
       editable-events
       :drag-to-create-event="false"
       :on-event-create="onEventCreate"
+      @event-drop="onEventDrop"
       class="vuecal--green-theme"
     >
       <template v-slot:today-button>
@@ -49,7 +50,7 @@
         <v-card>
           <v-toolbar style="background-color: #42b983; color: white">
             <editableText
-              :content="`<h4> ${selectedEvent.title} </h4>`"
+              :content="` ${selectedEvent.title} `"
               @EditingVal="handleEditTitle"
             />
 
@@ -57,7 +58,9 @@
           </v-toolbar>
           <v-card-text>
             <editableText
-              :content="`<p class='pa-12'> ${selectedEvent.content} </p>`"
+              tag='<p class = "pa-12">'
+              endingTag='</p>'
+              :content="`${selectedEvent.content}`"
               @EditingVal="handleEditContent"
             />
             <!-- <p class="text-h2 pa-12">{{selectedEvent.content}}</p> -->
@@ -133,6 +136,33 @@ export default {
       e.stopPropagation();
     },
 
+    onEventDrop(e){
+      console.log(e);
+      const timeElapsed = Date.now();
+      const today = new Date(timeElapsed);
+      var eventToUpload = {
+        event_name: e.event.title,
+        event_description: e.event.content,
+        event_date: e.newDate.toISOString(),
+        // created_at: response.data.return.created_at,
+        updated_at: today.toISOString(),
+      };
+       this.axios
+            .put(
+              `${this.c.updateEvent}${e.event._id}`,
+              eventToUpload,
+              { headers: this.c.headers }
+            )
+            .then((res) => {
+              if (res.data.success) {
+                this.showAlert({ message: res.data.message, type: "success" });
+              } else {
+                this.showAlert({ message: res.data.message, type: "error" });
+              }
+              console.log(res);
+            });
+    },
+
     handleEditContent(e) {
       this.selectedEvent.content = e;
     },
@@ -142,22 +172,37 @@ export default {
     },
 
     saveEditedEvent() {
-      var eventToUpload = {
-        event_name: this.selectedEvent.title,
-        event_description: this.selectedEvent.content,
-        event_date: this.selectedEvent.start,
-
-        updated_at: Date.now(),
-        // deleted_at: "",
-      };
+      const timeElapsed = Date.now();
+      const today = new Date(timeElapsed);
       this.axios
-        .put(
-          `${this.c.updateEvent}${this.selectedEvent._id}`,
-          { eventToUpload },
-          { headers: this.c.headers }
-        )
-        .then((res) => {
-          console.log(res);
+        .get(`${this.c.getEvent}${this.selectedEvent._id}`, {
+          headers: this.c.headers,
+        })
+        .then((response) => {
+          console.log(response.data.return);
+          var eventToUpload = {
+            event_name: this.selectedEvent.title,
+            event_description: this.selectedEvent.content,
+            event_date: response.data.return.event_date,
+            created_at: response.data.return.created_at,
+            updated_at: today.toISOString(),
+            // deleted_at: "",
+          };
+          console.log(eventToUpload);
+          this.axios
+            .put(
+              `${this.c.updateEvent}${this.selectedEvent._id}`,
+              eventToUpload,
+              { headers: this.c.headers }
+            )
+            .then((res) => {
+              if (res.data.success) {
+                this.showAlert({ message: res.data.message, type: "success" });
+              } else {
+                this.showAlert({ message: res.data.message, type: "error" });
+              }
+              console.log(res);
+            });
         });
     },
 
@@ -194,7 +239,7 @@ export default {
       console.log(this.deleteEventFunction);
       return event;
     },
-    onEventCreateClick(e){
+    onEventCreateClick(e) {
       console.log(e);
     },
 
@@ -262,16 +307,16 @@ export default {
   },
 
   created: function () {
-    console.log(this.c.createEvent);
+    // console.log(this.c.createEvent);
     this.axios
       .post(`${this.c.listURL}`, {}, { headers: this.c.headers })
       .then((res) => {
         console.log(res);
         if (res.data.success) {
           console.log(res.data);
+          console.log(this.events);
           for (var i of res.data.return.docs) {
             this.events.push(this.convertEvent(i));
-            // console.log(this.events);
           }
           // this.events = res.data.return.docs;
         }
