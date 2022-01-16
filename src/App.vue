@@ -47,6 +47,15 @@ export default {
   margin-top: 60px;
 }
 
+html, body, input, textarea, select, button {
+    background-color: rgb(19, 21, 22);
+    border-color: #736b5e;
+    color: #e8e6e3;
+}
 
+h1 , h2 , h3 , h4 ,h5, h6 , button , input , p , a ,span , .vuecal__no-event , .event-title--edit , div{
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif !important;
+  color:white;
+}
 </style>
 
